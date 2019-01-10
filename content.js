@@ -17,6 +17,9 @@ const pasteFct = async (e) => {
   // }
 
   if (path[0].classList.contains('chat-author__display-name')) {
+    document.querySelector('[data-test-selector="close-viewer-card"]').click();
+    inputText(`@${path[0].innerText} `);
+    setTimeout(() => document.querySelector('[data-a-target="chat-input"]').blur(), 100);
     return;
   }
 
@@ -130,3 +133,19 @@ window.addEventListener('keydown', (e) => {
     document.body.querySelector('[class^=top-nav__nav-link]').click(); document.body.querySelector('[class^=persistent-player__control]').click();
   }
 });
+
+// let mouseMoveEvent;
+// window.addEventListener('mousemove', (e) => {
+//   if (!mouseMoveEvent) {
+//     mouseMoveEvent = setTimeout(() => {
+//       for (const el of e.path) {
+//         if 
+//       }
+//       mouseMoveEvent = undefined;
+//     }, 1000);
+//   }
+// });
+
+const chatlineStyle = document.createElement('style');
+chatlineStyle.innerText = '[class^=chat-line__message] { cursor: pointer } [class^=chat-line__message]:hover { opacity: .7 }';
+document.body.appendChild(chatlineStyle);
