@@ -58,7 +58,7 @@ const pasteFct = async (e) => {
   // console.log(message);
 
   sendText(message);
-  
+
   // if ([].includes.call(el.classList, 'chat-line__message') && click === RIGHT_CLICK) {
   //   e.preventDefault();
 
@@ -127,6 +127,6 @@ window.addEventListener('click', pasteFct);
 window.addEventListener('keydown', (e) => {
   if (e.keyCode === 116) {
     e.preventDefault();
-    Array.prototype.slice.call(document.body.querySelector('[role=log]').childNodes, 0, -1).forEach(n => n.remove());
+    document.body.querySelector('[class^=top-nav__nav-link]').click(); document.body.querySelector('[class^=persistent-player__control]').click();
   }
 });
