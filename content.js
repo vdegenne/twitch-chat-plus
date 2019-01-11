@@ -39,21 +39,25 @@ const pasteFct = async (e) => {
   const messageNodes = Array.prototype.slice.call(chatline.childNodes, 3);
   // console.log(messageNodes);
 
-  let message = '';
-  for (const node of messageNodes) {
+  let message = ' ';
+  for (let node of messageNodes) {
+    if (node.classList.contains('chat-line__message--emote-button')) {
+      node = node.firstElementChild;
+    }
+
     if (node.classList.contains('mention-fragment')) {
-      message += node.innerText;
+      message += ` ${node.innerText} `;
     }
     else if (node.hasAttribute('data-a-target') && node.getAttribute('data-a-target') === 'emote-name') {
-      message += node.firstElementChild.alt;
+      message += ` ${node.firstElementChild.alt} `;
     }
     else if (node.classList.contains('text-fragment')) {
       if (node.childNodes[0].localName !== 'span') {
-        message += node.innerText;
+        message += ` ${node.innerText} `;
       }
       else if (node.childNodes[0].localName === 'span') {
         for (const subnode of node.childNodes[0].childNodes) {
-          message += subnode.nodeType === 3 ? subnode.textContent : subnode.childNodes[1].alt;
+          message += ` ${subnode.nodeType === 3 ? subnode.textContent : subnode.childNodes[1].alt} `;
         }
       }
     }
@@ -61,6 +65,12 @@ const pasteFct = async (e) => {
   // console.log(message);
 
   sendText(message);
+
+  setTimeout(() => {
+    if (document.body.querySelector('[class^=chat-list__more-messages]').firstElementChild) {
+      document.body.querySelector('[class^=chat-list__more-messages]').firstElementChild.firstElementChild.click();
+    }
+  }, 200);
 
   // if ([].includes.call(el.classList, 'chat-line__message') && click === RIGHT_CLICK) {
   //   e.preventDefault();
