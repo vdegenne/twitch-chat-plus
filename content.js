@@ -1,161 +1,381 @@
-const LEFT_CLICK = 'LEFT_CLICK';
-const RIGHT_CLICK = 'RIGHT_CLICK';
+const LEFT_CLICK = 'LEFT_CLICK'
+const RIGHT_CLICK = 'RIGHT_CLICK'
+const STREAM_NAME_SELECTOR = '[data-a-target="user-channel-header-item"] p'
 
+let symbols = JSON.parse(localStorage.getItem('symbols')) || []
 
+const fancies = {
+  a: ['𝕒'],
+  b: ['𝕓'],
+  c: ['𝕔'],
+  d: ['𝕕'],
+  e: ['𝕖'],
+  f: ['𝕗'],
+  g: ['𝕘'],
+  h: ['𝕙'],
+  i: ['𝕚'],
+  j: ['𝕛'],
+  k: ['𝕜'],
+  l: ['𝕝'],
+  m: ['𝕞'],
+  n: ['𝕟'],
+  o: ['𝕠'],
+  p: ['𝕡'],
+  q: ['𝕢'],
+  r: ['𝕣'],
+  s: ['𝕤'],
+  t: ['𝕥'],
+  u: ['𝕦'],
+  v: ['𝕧'],
+  w: ['𝕨'],
+  x: ['𝕩'],
+  y: ['𝕪'],
+  z: ['𝕫'],
+  A: ['𝔸'],
+  B: ['𝔹'],
+  C: ['ℂ'],
+  D: ['𝔻'],
+  E: ['𝔼'],
+  F: ['𝔽'],
+  G: ['𝔾'],
+  H: ['ℍ'],
+  I: ['𝕀'],
+  J: ['𝕁'],
+  K: ['𝕂'],
+  L: ['𝕃'],
+  M: ['𝕄'],
+  N: ['ℕ'],
+  O: ['𝕆'],
+  P: ['ℙ'],
+  Q: ['ℚ'],
+  R: ['ℝ'],
+  S: ['𝕊'],
+  T: ['𝕋'],
+  U: ['𝕌'],
+  V: ['𝕍'],
+  W: ['𝕎'],
+  X: ['𝕏'],
+  Y: ['𝕐'],
+  Z: ['ℤ']
+}
+const fancyString = string => {
+  // const uppermap =
 
-const pasteFct = async (e) => {
-  const path = e.path;
+  let converted = ''
 
-  // if (el.localName === 'img') {
-  //   if (click === LEFT_CLICK) {
-  //     sendText(el.alt);
-  //   }
-  //   if (click === RIGHT_CLICK) {
-  //     e.preventDefault();
-  //     appendText(el.alt);
-  //   }
-  // }
+  for (const letter of string) {
+    if (letter in fancies) {
+      converted += fancies[letter][0]
+      continue
+    }
+    converted += letter
+    // // lowercase
+    // code = string[index].charCodeAt(0) - 97
+    // if (code >= 0 && code <= lowermap.length) {
+    //   converted += lowermap.slice(code * 2, code * 2 + 2)
+    //   continue
+    // }
+    // // uppercase
+    // code = string[index].charCodeAt(0) - 65
+    // if (code >= 0 && code <= uppermap.length) {
+    //   converted += uppermap.slice(code * 2, code * 2 + 2).replace(' ', '')
+    //   continue
+    // }
+    // converted += string[index]
+  }
+  return converted
+}
+const waitElement = async (selector, timeout = 10) => {
+  let el = undefined,
+    round = 0
+  if (timeout < 0) {
+    timeout = 999
+  }
+  while (!el && round++ < timeout) {
+    el = document.body.querySelector(selector)
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  return el
+}
+
+const Observer = {
+  CHILD_LIST: 'CHILD_LIST',
+  CHARACTER_DATA: 'CHARACTER_DATA',
+  observe: function(element, type = this.CHARACTER_DATA, response, subtree = this.CHARACTER_DATA) {
+    if (typeof type === 'function') {
+      const _response = response
+      response = type
+      type = this.CHARACTER_DATA
+      if (_response) subtree = _response
+      if (subtree === undefined) {
+        subtree = type === this.CHARACTER_DATA ? true : false
+      }
+    }
+
+    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver
+    if (!MutationObserver) {
+      throw new Error('update your browser to use this code')
+    }
+
+    if (!element || element.nodeType !== 1) {
+      throw new Error('element is no valid')
+    }
+
+    const observer = new MutationObserver(response)
+    observer.observe(element, {
+      childList: type === this.CHILD_LIST,
+      characterData: type === this.CHARACTER_DATA,
+
+      subtree
+    })
+
+    return observer
+  }
+}
+
+const pasteFct = async e => {
+  const path = e.path
 
   if (path[0].classList.contains('chat-author__display-name')) {
-    document.querySelector('[data-test-selector="close-viewer-card"]').click();
-    inputText(`@${path[0].innerText} `);
-    setTimeout(() => document.querySelector('[data-a-target="chat-input"]').blur(), 100);
-    return;
+    document.querySelector('[data-test-selector="close-viewer-card"]').click()
+    inputText(`@${path[0].innerText} `)
+    setTimeout(() => document.querySelector('[data-a-target="chat-input"]').blur(), 100)
+    return
   }
 
   /* get the chat-line */
-  let chatline;
+  let chatline
   for (const el of path) {
     if (el.classList && el.classList.contains('chat-line__message')) {
-      chatline = el;
+      chatline = el
     }
   }
 
   if (!chatline) {
-    return;
+    return
   }
   //console.log('chatline', chatline);
 
-  const messageNodes = Array.prototype.slice.call(chatline.childNodes, 3);
+  const messageNodes = Array.prototype.slice.call(chatline.childNodes, 3)
   // console.log(messageNodes);
 
-  let message = ' ';
+  let message = ' '
   for (let node of messageNodes) {
     if (node.classList.contains('chat-line__message--emote-button')) {
-      node = node.firstElementChild;
+      node = node.firstElementChild
     }
 
     if (node.classList.contains('mention-fragment')) {
-      message += ` ${node.innerText} `;
-    }
-    else if (node.hasAttribute('data-a-target') && node.getAttribute('data-a-target') === 'emote-name') {
-      message += ` ${node.firstElementChild.alt} `;
-    }
-    else if (node.classList.contains('text-fragment')) {
+      message += ` ${node.innerText} `
+    } else if (
+      node.hasAttribute('data-a-target') &&
+      node.getAttribute('data-a-target') === 'emote-name'
+    ) {
+      message += ` ${node.firstElementChild.alt} `
+    } else if (node.classList.contains('text-fragment')) {
       if (node.childNodes[0].localName !== 'span') {
-        message += ` ${node.innerText} `;
-      }
-      else if (node.childNodes[0].localName === 'span') {
+        message += ` ${node.innerText} `
+      } else if (node.childNodes[0].localName === 'span') {
         for (const subnode of node.childNodes[0].childNodes) {
-          message += ` ${subnode.nodeType === 3 ? subnode.textContent : subnode.childNodes[1].alt} `;
+          message += ` ${subnode.nodeType === 3 ? subnode.textContent : subnode.childNodes[1].alt} `
         }
       }
     }
   }
-  // console.log(message);
 
-  sendText(message);
+  Chat.send(message)
 
-  setTimeout(() => {
-    if (document.body.querySelector('[class^=chat-list__more-messages]').firstElementChild) {
-      document.body.querySelector('[class^=chat-list__more-messages]').firstElementChild.firstElementChild.click();
+  setTimeout(Chat.scrollToBottom, 100)
+}
+
+/**
+ * Chat helper Class
+ */
+class Chat {
+  static get inputSelector() {
+    return 'textarea[data-a-target=chat-input]'
+  }
+  static get sendButtonSelector() {
+    return '[data-a-target=chat-send-button]'
+  }
+  static get inputElement() {
+    return document.querySelector(Chat.inputSelector)
+  }
+
+  static get sendButton() {
+    return document.querySelector(Chat.sendButtonSelector)
+  }
+
+  static async bindEvents() {
+    Promise.all([
+      waitElement(Chat.inputSelector, -1),
+      waitElement(Chat.sendButtonSelector, -1)
+    ]).then(elements => {
+      elements[0].addEventListener('keydown', e => {
+        if (e.keyCode === 13) {
+          // enter
+          e.preventDefault()
+          e.stopPropagation()
+          Chat.send(Chat.text)
+        }
+      })
+      elements[1].addEventListener('click', e => {
+        Chat.send(Chat.text)
+      })
+    })
+  }
+
+  static async addSymbolsInput() {
+    const element = await waitElement('[data-test-selector="chat-input-buttons-container"]')
+    if (element) {
     }
-  }, 200);
+    let input = $(
+      `<input type="text" placeholder="symbols..." style="height:27px;padding:0 4px;max-width:140px;" value="${symbols.join(
+        ','
+      )}">`
+    )
+    input.value = JSON.parse(localStorage.getItem('symbols'))
+    input.on('keyup', e => {
+      symbols = e.target.value.split(',')
+      localStorage.setItem('symbols', JSON.stringify(symbols))
+    })
+    input.insertAfter(element.firstElementChild)
+  }
 
-  // if ([].includes.call(el.classList, 'chat-line__message') && click === RIGHT_CLICK) {
-  //   e.preventDefault();
+  static notifyInputElement() {
+    const changevent = document.createEvent('Events')
+    changevent.initEvent('change', true, true)
+    Chat.inputElement.dispatchEvent(changevent)
+  }
 
-  //   let input = '';
-  //   for (let i = 3; i < el.childElementCount; ++i) {
-  //     let img;
-  //     if (img = el.childNodes[i].getElementsByTagName('img')[0]) {
-  //       input += ` ${img.alt} `;
-  //     }
-  //     else {
-  //       input += ` ${el.childNodes[i].innerText.trim()} `;
-  //     }
-  //   }
-  //   sendText(input);
-  // }
-};
+  static get text() {
+    return Chat.inputElement.value
+  }
 
-/**
- * Returns the chatinput textarea element of the page.
- */
-const getChatInput = () => document.querySelector('[data-a-target=chat-input]');
+  static set text(text) {
+    Chat.inputElement.value = text
+    // Chat.inputElement.innerText = text ?
+    Chat.notifyInputElement()
+  }
 
-/**
- * Notifies the app that the textarea value has changed.
- */
-const notifyChatInput = (input) => {
-  const changevent = document.createEvent('Events');
-  changevent.initEvent('change', true, true)
-  input.dispatchEvent(changevent);
-};
+  static async send(text = undefined) {
+    const button = Chat.sendButton
+    const clickSendButton = () => button.click()
 
-const appendText = (text) => {
-  let input = getChatInput().value;
-  if (input) { input += ' ' }
-  input += text;
-  inputText(input);
-};
+    if (text !== undefined) {
+      let parts = text.split('++')
+      for (let part of parts) {
+        let text
+        part = part.trim()
+        // empty line or only symbol, continue
+        if (!part.length || (part.length === 1 && symbols.includes(part[0]))) {
+          continue
+        }
 
-const inputText = (text) => {
-  const chatinput = getChatInput();
+        // replace fancy
+        part = part.replace(/\[([^\]])+\]/g, match =>
+          fancyString(match.substring(1, match.length - 1))
+        )
 
-  chatinput.innerText = text;
-  chatinput.value = text;
+        // starting with ! or starting with symbol, pass
+        if (part[0] !== '!' && !symbols.includes(part[0])) {
+          text = symbols[Math.floor(Math.random() * symbols.length)] + ' ' + part
+        } else {
+          text = part
+        }
 
-  notifyChatInput(chatinput);
-};
+        Chat.text = text
+        clickSendButton()
+        while (document.body.querySelector('[data-test-selector="chat-input-tray"]')) {
+          await new Promise(resolve => setTimeout(resolve, 120))
+          clickSendButton()
+        }
+        if (parts.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 600))
+        }
+      }
+    } else {
+      clickSendButton()
+    }
+  }
 
-const getInputText = () => getChatInput().value;
+  static async clear() {
+    document.querySelector('[aria-label="Chat settings"]').click()
+    let clearButton
+    do {
+      clearButton = document.querySelector('.clearChat')
+      await new Promise(resolve => setTimeout(resolve, 50))
+    } while (!clearButton)
+    clearButton.click()
+    document.querySelector('[aria-label="Chat settings"]').click()
+  }
 
-const clickSend = () => document.querySelector('[data-a-target=chat-send-button]').click();
-
-/**
- * This function will send the text provided and keep the text of the chat input intact.
- */
-const sendText = (text) => {
-  const tempinput = getInputText();
-  inputText(text);
-  clickSend();
-  inputText(tempinput);
-};
-
+  static scrollToBottom() {
+    try {
+      document.querySelector('[data-a-target="chat-list-footer"] > div').click()
+    } catch (e) {
+      // console.log(e)
+      /**/
+    }
+  }
+}
 
 /* bind events */
-window.addEventListener('click', pasteFct);
+window.addEventListener('click', pasteFct)
 // window.addEventListener('contextmenu', (e) => pasteFct(e, RIGHT_CLICK));
-window.addEventListener('keydown', (e) => {
-  if (e.keyCode === 116) {
-    e.preventDefault();
-    document.body.querySelector('[class^=top-nav__nav-link]').click(); document.body.querySelector('[class^=persistent-player__control]').click();
+window.addEventListener('keydown', e => {
+  if (e.key === 'F5') {
+    e.preventDefault()
+    Chat.clear()
   }
-});
+})
 
-// let mouseMoveEvent;
-// window.addEventListener('mousemove', (e) => {
-//   if (!mouseMoveEvent) {
-//     mouseMoveEvent = setTimeout(() => {
-//       for (const el of e.path) {
-//         if 
-//       }
-//       mouseMoveEvent = undefined;
-//     }, 1000);
-//   }
-// });
+const chatlineStyle = document.createElement('style')
+chatlineStyle.innerText =
+  '[class^=chat-line__message] { cursor: pointer } [class^=chat-line__message]:hover { opacity: .7 }'
+document.body.appendChild(chatlineStyle)
 
-const chatlineStyle = document.createElement('style');
-chatlineStyle.innerText = '[class^=chat-line__message] { cursor: pointer } [class^=chat-line__message]:hover { opacity: .7 }';
-document.body.appendChild(chatlineStyle);
+let firstTimeExec = true
+const init = async () => {
+  let scriptloaded = false
+  await Chat.bindEvents()
+  await Chat.addSymbolsInput()
+
+  waitElement('[data-test-selector="pinned-cheers-container"]').then(el => {
+    if (el) el.parentElement.remove()
+    if (!scriptloaded) {
+      scriptloaded = true
+      toastit('TwitchEmotePaste initialised')
+    }
+  })
+  waitElement('.channel-leaderboard').then(el => {
+    if (el) el.parentElement.remove()
+    if (!scriptloaded) {
+      scriptloaded = true
+      toastit('TwitchEmotePaste initialised')
+    }
+  })
+
+  if (firstTimeExec) {
+    $(
+      '<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">'
+    ).appendTo('head')
+    const snackbar = document.createElement('mwc-snackbar')
+    snackbar.id = 'snackbar'
+    // snackbar.leading = true
+    document.body.appendChild(snackbar)
+    firstTimeExec = false
+  }
+}
+
+init()
+waitElement(STREAM_NAME_SELECTOR).then(el => {
+  Observer.observe(el, _ => {
+    setTimeout(init, 1000)
+  })
+})
+
+const toastit = message => {
+  snackbar.labelText = message
+  snackbar.open()
+}

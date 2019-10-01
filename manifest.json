@@ -1,16 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "twitch emote paste",
+  "name": "TwitchEmotePaste",
   "version": "0.1",
   "description": "This extension lets you paste emotes' names in the chat input by clicking them in the chat",
   "content_scripts": [
     {
-      "matches": [
-        "*://www.twitch.tv/*"
-      ],
-      "js": [
-        "content.js"
-      ]
+      "matches": ["*://www.twitch.tv/*"],
+      "js": ["jquery.min.js", "snackbar.js", "content.js"]
     }
   ]
 }
