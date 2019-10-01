@@ -345,14 +345,14 @@ const init = async () => {
     if (el) el.parentElement.remove()
     if (!scriptloaded) {
       scriptloaded = true
-      toastit('TwitchEmotePaste initialised')
+      toastit('TwitchChatPlus initialised')
     }
   })
   waitElement('.channel-leaderboard').then(el => {
     if (el) el.parentElement.remove()
     if (!scriptloaded) {
       scriptloaded = true
-      toastit('TwitchEmotePaste initialised')
+      toastit('TwitchChatPlus initialised')
     }
   })
 

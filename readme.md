@@ -1,3 +1,6 @@
+# TwitchChatPlus
+
+
 ## install dependencies
 
 ```npm i```

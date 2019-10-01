@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "TwitchEmotePaste",
+  "name": "TwitchChatPlus",
   "version": "0.1",
   "description": "This extension lets you paste emotes' names in the chat input by clicking them in the chat",
   "content_scripts": [

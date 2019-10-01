@@ -1,5 +1,5 @@
 {
-  "name": "twitch-emote-paste",
+  "name": "twitch-chat-plus",
   "dependencies": {
     "@material/mwc-snackbar": "^0.9.1",
     "@webcomponents/custom-elements": "^1.3.0",
