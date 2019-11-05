@@ -3,6 +3,7 @@ const RIGHT_CLICK = 'RIGHT_CLICK'
 const STREAM_NAME_SELECTOR = '[data-a-target="user-channel-header-item"] p'
 
 let symbols = JSON.parse(localStorage.getItem('symbols')) || []
+let me = false
 
 const fancies = {
   a: ['𝕒'],
@@ -167,10 +168,7 @@ const pasteFct = async e => {
 
     if (node.classList.contains('mention-fragment')) {
       message += ` ${node.innerText} `
-    } else if (
-      node.hasAttribute('data-a-target') &&
-      node.getAttribute('data-a-target') === 'emote-name'
-    ) {
+    } else if (node.hasAttribute('data-a-target') && node.getAttribute('data-a-target') === 'emote-name') {
       message += ` ${node.firstElementChild.alt} `
     } else if (node.classList.contains('text-fragment')) {
       if (node.childNodes[0].localName !== 'span') {
@@ -207,10 +205,7 @@ class Chat {
   }
 
   static async bindEvents() {
-    Promise.all([
-      waitElement(Chat.inputSelector, -1),
-      waitElement(Chat.sendButtonSelector, -1)
-    ]).then(elements => {
+    Promise.all([waitElement(Chat.inputSelector, -1), waitElement(Chat.sendButtonSelector, -1)]).then(elements => {
       elements[0].addEventListener('keydown', e => {
         if (e.keyCode === 13) {
           // enter
@@ -229,17 +224,26 @@ class Chat {
     const element = await waitElement('[data-test-selector="chat-input-buttons-container"]')
     if (element) {
     }
-    let input = $(
-      `<input type="text" placeholder="symbols..." style="height:27px;padding:0 4px;max-width:140px;" value="${symbols.join(
-        ','
-      )}">`
-    )
+
+    document.querySelector('[data-test-selector="chat-input-buttons-container"]').style.alignItems = 'center'
+
+    /* input */
+    let input = $(`<input type="text" placeholder="symbols..." style="height:27px;padding:0 4px;max-width:140px;" value="${symbols.join(',')}">`)
     input.value = JSON.parse(localStorage.getItem('symbols'))
     input.on('keyup', e => {
       symbols = e.target.value.split(',')
       localStorage.setItem('symbols', JSON.stringify(symbols))
     })
     input.insertAfter(element.firstElementChild)
+
+    /* me */
+    let meCheckbox = $(
+      `<label style="cursor:pointer;display:flex;align-items:center;margin-left:5px;"><input type=checkbox style="cursor:pointer"><span>/me</span></label>`
+    )
+    meCheckbox.on('change', e => {
+      me = e.target.checked
+    })
+    meCheckbox.insertAfter(element.firstElementChild.nextElementSibling)
   }
 
   static notifyInputElement() {
@@ -265,7 +269,7 @@ class Chat {
     if (text !== undefined) {
       let parts = text.split('++')
       for (let part of parts) {
-        let text
+        let text = ''
         part = part.trim()
         // empty line or only symbol, continue
         if (!part.length || (part.length === 1 && symbols.includes(part[0]))) {
@@ -273,15 +277,21 @@ class Chat {
         }
 
         // replace fancy
-        part = part.replace(/\[([^\]])+\]/g, match =>
-          fancyString(match.substring(1, match.length - 1))
-        )
+        part = part.replace(/\[([^\]])+\]/g, match => fancyString(match.substring(1, match.length - 1))).trim()
+
+        // ensure /me is not ignored
+        if (part.startsWith('/me')) {
+          text += '/me '
+          part = part.replace('/me', '').trim()
+        } else if (me) {
+          text += '/me '
+        }
 
         // starting with ! or starting with symbol, pass
-        if (part[0] !== '!' && !symbols.includes(part[0])) {
-          text = symbols[Math.floor(Math.random() * symbols.length)] + ' ' + part
+        if (part[0] !== '!' && !symbols.some(s => part.startsWith(s))) {
+          text += symbols[Math.floor(Math.random() * symbols.length)] + ' ' + part
         } else {
-          text = part
+          text += part
         }
 
         Chat.text = text
@@ -331,8 +341,7 @@ window.addEventListener('keydown', e => {
 })
 
 const chatlineStyle = document.createElement('style')
-chatlineStyle.innerText =
-  '[class^=chat-line__message] { cursor: pointer } [class^=chat-line__message]:hover { opacity: .7 }'
+chatlineStyle.innerText = '[class^=chat-line__message] { cursor: pointer } [class^=chat-line__message]:hover { opacity: .7 }'
 document.body.appendChild(chatlineStyle)
 
 let firstTimeExec = true
@@ -357,13 +366,20 @@ const init = async () => {
   })
 
   if (firstTimeExec) {
-    $(
-      '<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">'
-    ).appendTo('head')
+    $('<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">').appendTo('head')
     const snackbar = document.createElement('mwc-snackbar')
     snackbar.id = 'snackbar'
     // snackbar.leading = true
     document.body.appendChild(snackbar)
+
+    // community points
+    setInterval(() => {
+      const button = document.querySelector('[data-test-selector="community-points-summary"] .tw-button.tw-button--success.tw-interactive')
+      if (button) {
+        button.click()
+      }
+    }, 2000)
+
     firstTimeExec = false
   }
 }
