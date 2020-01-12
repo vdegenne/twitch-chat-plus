@@ -1,4 +1,4 @@
-# TwitchChatPlus
+# twitch-chat-plus
 
 ## Installation
 
