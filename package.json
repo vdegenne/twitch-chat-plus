@@ -9,5 +9,8 @@
   },
   "scripts": {
     "build": "cp ./node_modules/jquery/dist/jquery.min.js . & rollup -c"
+  },
+  "devDependencies": {
+    "rollup": "^1.29.0"
   }
 }
