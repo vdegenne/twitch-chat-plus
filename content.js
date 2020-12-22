@@ -374,7 +374,7 @@ const init = async () => {
 
     // community points
     setInterval(() => {
-      const button = document.querySelector('[data-test-selector="community-points-summary"] .tw-button.tw-button--success.tw-interactive')
+      const button = document.querySelector('[data-test-selector="community-points-summary"] .tw-button.tw-button--success')
       if (button) {
         button.click()
       }
